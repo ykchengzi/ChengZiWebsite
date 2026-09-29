@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Markdown转文档 - 导出为Word文档或Excel表格，支持实时预览">
+    <meta name="keywords" content="Markdown,Word,Excel,转换器,在线工具,文档转换">
+    <title>Markdown转文档工具 - YKChengZi</title>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../css/templatemo-style.css">
+    <link rel="shortcut icon" type="image/png" href="../img/CZ.ico">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js"></script>
+    
+    <style>
+        body {
+            background-image: url('../img/wallpaper.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .tm-hero {
+            min-height: 400px;
+            background: transparent;
+        }
+        .tm-container-content {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: calc(100% - 40px);
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15),
+                        0 4px 16px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        .tm-hero .display-4 {
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5),
+                        0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        .tm-hero .text-white {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        .btn-action {
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            padding: 8px 16px;
+            height: 40px;
+            line-height: 24px;
+        }
+        .form-control-inline {
+            display: inline-block;
+            width: auto;
+            font-size: 14px;
+            padding: 8px 16px;
+            height: 40px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        .footer-divider {
+            height: 2px;
+            background-color: rgba(0, 0, 0, 0.2);
+            width: 100%;
+        }
+        .editor-container {
+            height: 400px;
+        }
+        .preview-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            background-color: #fff;
+        }
+        .markdown-preview h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .markdown-preview h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .markdown-preview h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-preview p {
+            margin-bottom: 1rem;
+        }
+        .markdown-preview ul, 
+        .markdown-preview ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+        .markdown-preview ul li {
+            list-style-type: disc;
+            margin-bottom: 0.25rem;
+        }
+        .markdown-preview ol li {
+            list-style-type: decimal;
+            margin-bottom: 0.25rem;
+        }
+        .markdown-preview blockquote {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 1rem;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+        .markdown-preview pre {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+        .markdown-preview code {
+            font-family: 'Fira Code', monospace;
+            background-color: #f3f4f6;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+        .markdown-preview pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+        }
+        .markdown-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        .markdown-preview table th,
+        .markdown-preview table td {
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .markdown-preview table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        .markdown-preview img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+        .markdown-preview hr {
+            border: 0;
+            border-top: 1px solid #e5e7eb;
+            margin: 1.5rem 0;
+        }
+        .nav-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        .nav-link {
+            border-bottom: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader-wrapper">
+        <div id="loader"></div>
+        <div class="loader-section section-left"></div>
+        <div class="loader-section section-right"></div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light" style="margin: 20px auto; max-width: calc(100% - 40px); border-radius: 8px; background-color: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); padding-top: 0.5rem; padding-bottom: 0.5rem; position: relative; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-seedling mr-2"></i>Bili_YKChengZi
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ml-auto" id="navbar-nav" style="position: relative;">
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-1" href="../index.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-2" href="../system.html">操作系统</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-4 active" href="../online.html">在线工具</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-5" href="../minecraftserver.html">我的世界服务器</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-3" href="../about.html">关于</a>
+                    </li>
+                    <div class="nav-indicator" id="nav-indicator"></div>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="tm-hero d-flex justify-content-center align-items-center">
+        <div class="text-center mb-5">
+            <h1 class="text-white mb-4 display-4">Markdown转文档</h1>
+            <p class="text-white lead mb-5 max-w-2xl mx-auto">将 Markdown 转换为 Word 文档或 Excel 表格</p>
+        </div>
+    </div>
+    
+    <div class="container-fluid tm-container-content tm-mt-60">
+        <div class="row mb-8">
+            <div class="col-12">
+                <h2 class="tm-text-primary mb-4">Markdown 转文档</h2>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="markdown-input" class="form-label font-weight-bold">Markdown 编辑器</label>
+                        <div class="editor-container">
+                            <textarea id="markdown-input" class="form-control" style="font-family: monospace; font-size: 14px; resize: none; border: 1px solid #ddd; height: 100%;" placeholder="请输入 Markdown 内容..."></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label font-weight-bold">实时预览</label>
+                        <div class="preview-container">
+                            <div id="markdown-preview" class="markdown-preview"></div>
+                            <div id="table-preview" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <button id="export-btn" class="btn btn-primary btn-action">
+                        导出
+                    </button>
+                    <select id="format-select" class="form-control-inline">
+                        <option value="word">导出为 Word</option>
+                        <option value="excel">导出为 Excel</option>
+                    </select>
+                    <button id="sample-btn" class="btn btn-info btn-action">
+                        加载示例
+                    </button>
+                    <button id="clear-btn" class="btn btn-secondary btn-action">
+                        清空
+                    </button>
+                </div>
+                
+                <div id="message" class="alert" role="alert" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <footer class="pt-5 pb-3 tm-footer" style="background: transparent;">
+            <div class="container-fluid tm-container-small">
+                <div class="footer-divider mb-5"></div>
+                <div class="row">
+                    <div class="col-lg-6 col-md-12 col-12 px-5 mb-5">
+                        <h3 class="tm-text-primary mb-4 tm-footer-title">关于 Bili_YKChengZi</h3>
+                        <p style="color: black;">Bili_YKChengZi 主要分享 Windows 系统相关内容，包括系统优化、修改。我制作的内容仅供学习和技术交流使用，请大家支持正版软件。</p>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-12 px-5 mb-5">
+                        <h3 class="tm-text-primary mb-4 tm-footer-title">快速导航</h3>
+                        <ul class="tm-footer-links">
+                            <li><a href="../index.html" style="color: black;">首页</a></li>
+                            <li><a href="../system.html" style="color: black;">操作系统</a></li>
+                            <li><a href="../online.html" style="color: black;">在线工具</a></li>
+                            <li><a href="../minecraftserver.html" style="color: black;">我的世界服务器</a></li>
+                            <li><a href="../about.html" style="color: black;">关于</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-12 px-5 mb-5">
+                        <h3 class="tm-text-primary mb-4 tm-footer-title">联系我</h3>
+                        <ul class="tm-contacts">
+                            <li>
+                                <a href="#" style="color: black;">
+                                    <i class="fab fa-github mr-2"></i>
+                                    GitHub: Bili_YKChengZi
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" style="color: black;">
+                                    <i class="fas fa-play-circle mr-2"></i>
+                                    B站: Bili_YKChengZi
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" style="color: black;">
+                                    <i class="fas fa-envelope mr-2"></i>
+                                    邮箱: belugajia@outlook.com
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 px-5 text-center">
+                        <a href="https://icp.gov.moe/?keyword=20261412" target="_blank" rel="noopener" class="tm-footer-icp"><i class="fas fa-shield-alt"></i>萌ICP备20261412号</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="../js/plugins.js"></script>
+    <script>
+        const markdownInput = document.getElementById('markdown-input');
+        const markdownPreview = document.getElementById('markdown-preview');
+        const tablePreview = document.getElementById('table-preview');
+        const exportBtn = document.getElementById('export-btn');
+        const formatSelect = document.getElementById('format-select');
+        const clearBtn = document.getElementById('clear-btn');
+        const sampleBtn = document.getElementById('sample-btn');
+        const message = document.getElementById('message');
+        
+        const sampleMarkdown = `# Markdown示例文档
+
+## 标题和段落
+
+这是一个**粗体**文本，这是一个*斜体*文本。
+
+这是一个[链接](https://example.com)。
+
+## 列表
+
+- 项目1
+- 项目2
+- 项目3
+
+1. 第一步
+2. 第二步
+3. 第三步
+
+## 代码块
+
+\`\`\`javascript
+function hello() {
+    console.log("Hello, world!");
+}
+\`\`\`
+
+## 表格
+
+| 姓名 | 年龄 | 城市 |
+|------|------|------|
+| 张三 | 25 | 北京 |
+| 李四 | 30 | 上海 |
+
+## 引用
+
+> 这是一段引用文本。
+
+---
+
+感谢使用！
+> Made By Bili_YKChengZi`;
+        
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = 'alert alert-' + type;
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+        
+        function init() {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: true,
+                mangle: false
+            });
+            
+            markdownInput.addEventListener('input', handleMarkdownInput);
+            exportBtn.addEventListener('click', handleExport);
+            clearBtn.addEventListener('click', handleClear);
+            sampleBtn.addEventListener('click', handleSample);
+            
+            renderMarkdown();
+        }
+        
+        function handleMarkdownInput() {
+            renderMarkdown();
+        }
+        
+        function renderMarkdown() {
+            const markdown = markdownInput.value.trim();
+            
+            if (markdown === '') {
+                markdownPreview.innerHTML = '<div class="text-center text-muted mt-5"><p>请输入 Markdown 内容</p></div>';
+                return;
+            }
+            
+            const html = marked.parse(markdown);
+            const sanitizedHtml = DOMPurify.sanitize(html);
+            markdownPreview.innerHTML = sanitizedHtml;
+        }
+        
+        function extractTablesFromMarkdown(markdown) {
+            const tableRegex = /\|.*\|(?:\r?\n\|.*\|)+/g;
+            const tables = [];
+            let match;
+            while ((match = tableRegex.exec(markdown)) !== null) {
+                const rows = match[0].split('\n');
+                const tableData = rows.map(row => {
+                    const cells = row.trim().replace(/^\||\|$/g, '').split('|');
+                    return cells.map(cell => cell.trim());
+                }).filter((row, index) => {
+                    if (index === 0) return true;
+                    return !row.every(cell => /^-+$/.test(cell));
+                });
+                tables.push(tableData);
+            }
+            return tables;
+        }
+        
+        function handleExport() {
+            const markdown = markdownInput.value.trim();
+            
+            if (markdown === '') {
+                showMessage('请输入 Markdown 内容', 'warning');
+                return;
+            }
+            
+            const selectedFormat = formatSelect.value;
+            if (selectedFormat === 'excel') {
+                exportToExcel(markdown);
+            } else {
+                exportToWord(markdown);
+            }
+        }
+        
+        function exportToExcel(markdown) {
+            try {
+                const tables = extractTablesFromMarkdown(markdown);
+                
+                if (tables.length === 0) {
+                    showMessage('未检测到表格内容', 'warning');
+                    return;
+                }
+                
+                const wb = XLSX.utils.book_new();
+                tables.forEach((table, index) => {
+                    const ws = XLSX.utils.aoa_to_sheet(table);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Sheet' + (index + 1));
+                });
+                
+                XLSX.writeFile(wb, 'markdown-to-excel.xlsx');
+                showMessage('Excel 导出成功！', 'success');
+            } catch (error) {
+                console.error('导出Excel失败:', error);
+                showMessage('导出 Excel 失败，请重试', 'danger');
+            }
+        }
+        
+        function exportToWord(markdown) {
+            try {
+                const html = marked.parse(markdown);
+                const styledHtml = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; }
+                            h1 { font-size: 24pt; font-weight: bold; margin-bottom: 12pt; }
+                            h2 { font-size: 18pt; font-weight: bold; margin-top: 18pt; margin-bottom: 10pt; }
+                            h3 { font-size: 14pt; font-weight: bold; margin-top: 14pt; margin-bottom: 8pt; }
+                            p { margin-bottom: 10pt; }
+                            ul, ol { margin-bottom: 10pt; padding-left: 20pt; }
+                            code { font-family: Consolas, monospace; background-color: #f5f5f5; padding: 2pt 4pt; border-radius: 3pt; }
+                            pre { background-color: #f5f5f5; padding: 10pt; border-radius: 5pt; overflow-x: auto; }
+                            table { border-collapse: collapse; width: 100%; margin-bottom: 10pt; }
+                            th, td { border: 1px solid #ddd; padding: 6pt; text-align: left; }
+                            th { background-color: #f2f2f2; font-weight: bold; }
+                            blockquote { border-left: 4px solid #ddd; padding-left: 10pt; color: #666; font-style: italic; }
+                        </style>
+                    </head>
+                    <body>
+                        ${html}
+                    </body>
+                    </html>
+                `;
+                
+                const blob = htmlDocx.asBlob(styledHtml);
+                saveAs(blob, 'markdown-to-word.docx');
+                showMessage('Word 导出成功！', 'success');
+            } catch (error) {
+                console.error('导出Word失败:', error);
+                showMessage('导出 Word 失败，请重试', 'danger');
+            }
+        }
+        
+        function handleClear() {
+            if (markdownInput.value.trim() === '') return;
+            if (confirm('确定要清空吗？')) {
+                markdownInput.value = '';
+                renderMarkdown();
+            }
+        }
+        
+        function handleSample() {
+            if (confirm('加载示例内容？')) {
+                markdownInput.value = sampleMarkdown;
+                handleMarkdownInput();
+            }
+        }
+        
+        function initNavIndicator() {
+            const nav = document.getElementById('navbar-nav');
+            const indicator = document.getElementById('nav-indicator');
+            const links = nav.querySelectorAll('.nav-link');
+
+            function setIndicatorPosition(link) {
+                const rect = link.getBoundingClientRect();
+                const navRect = nav.getBoundingClientRect();
+                
+                indicator.style.left = (rect.left - navRect.left) + 'px';
+                indicator.style.width = rect.width + 'px';
+                
+                if (link.classList.contains('nav-link-1')) {
+                    indicator.style.backgroundColor = '#33CCFF';
+                } else if (link.classList.contains('nav-link-2')) {
+                    indicator.style.backgroundColor = '#FF6666';
+                } else if (link.classList.contains('nav-link-3')) {
+                    indicator.style.backgroundColor = '#33CC66';
+                } else if (link.classList.contains('nav-link-4')) {
+                    indicator.style.backgroundColor = '#CC66CC';
+                } else if (link.classList.contains('nav-link-5')) {
+                    indicator.style.backgroundColor = '#FF9933';
+                }
+            }
+
+            const activeLink = nav.querySelector('.active');
+            if (activeLink) {
+                setIndicatorPosition(activeLink);
+            }
+
+            links.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    setIndicatorPosition(this);
+                });
+            });
+
+            nav.addEventListener('mouseleave', function() {
+                const activeLink = nav.querySelector('.active');
+                if (activeLink) {
+                    setIndicatorPosition(activeLink);
+                }
+            });
+        }
+        
+        $(window).on("load", function() {
+            $("body").addClass("loaded");
+            init();
+            initNavIndicator();
+        });
+    </script>
+</body>
+</html>
