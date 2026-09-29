@@ -628,11 +628,19 @@ select:not([multiple]) {
     .tm-social-links li { margin-right: 3px; }
 }
 
-/* ===== 页脚 ICP 备案链接 ===== */
-.tm-footer-icp {
+/* ===== 页脚 ICP 备案 ===== */
+.tm-footer-icp-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.tm-footer-icp-text {
     display: inline-flex;
     align-items: center;
-    margin-top: 0.25rem;
     font-size: 0.8rem;
     color: #9a9a9a;
     text-decoration: none;
@@ -640,14 +648,31 @@ select:not([multiple]) {
     transition: color 0.25s ease;
 }
 
-.tm-footer-icp i {
+.tm-footer-icp-text i {
     margin-right: 6px;
     font-size: 0.76rem;
     opacity: 0.8;
 }
 
-.tm-footer-icp:hover,
-.tm-footer-icp:focus {
+.tm-footer-icp-text:hover {
     color: #5c5c5c;
     text-decoration: none;
+}
+
+.tm-footer-icp-sep {
+    color: #d0d0d0;
+    font-size: 0.8rem;
+}
+
+.tm-footer-icp-badge img {
+    display: block;
+    height: auto;
+    width: auto;
+    max-height: 28px;
+    opacity: 0.95;
+    transition: opacity 0.25s ease;
+}
+
+.tm-footer-icp-badge:hover img {
+    opacity: 1;
 }
